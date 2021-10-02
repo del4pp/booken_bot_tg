@@ -7,6 +7,9 @@ from fake_useragent import UserAgent
 from random import randint
 from datetime import datetime
 import time
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 bot = telebot.TeleBot(config.token)
 popular_link = 'https://www.yakaboo.ua/ua/top100/category/popular/id/4723/?custom=statistics_is_for_promotion'
@@ -37,19 +40,16 @@ def get_product_info():
         book_description = b_desc.text
 
     book_image = ''
-    for b_img in product_content.findAll('img', attrs={'id':'image'}):
-        book_image = b_img['src']
-
-    print(book_name)
-    print(book_description)
-    print(product_link)
-    print(book_image)
+    for block_img in product_content.findAll('div', attrs={'class':'product-image'}):
+        for b_img in product_content.findAll('img', attrs={'id':'image'}):
+            book_image = b_img['src']
+            break
 
     return book_name, str(book_description).replace('Усе про книжку ' + str(book_name) + '\n\n', ''), book_image, product_link
 
 def main():
     get_url_list()
-
+    
     product_info = get_product_info()
     product_link = product_info[3]
     new_records = database.check_new_book(product_link)
@@ -57,7 +57,7 @@ def main():
         book_name = product_info[0]
         book_desc = product_info[1]
         book_img = product_info[2]
-
+        print('okkkkkkk')
         menu = telebot.types.InlineKeyboardMarkup()
         menu.row(telebot.types.InlineKeyboardButton('👉 Замовити 👈', url='https://instagram.com/booken.ua'))
 
@@ -83,7 +83,7 @@ def main():
 while True:
     try:
         hour_now = int(datetime.now().hour)
-        if hour_now > 10 and hour_now < 20:
+        if hour_now > 9 and hour_now < 20:
             main()
         else:
             time.sleep(3600*3)
